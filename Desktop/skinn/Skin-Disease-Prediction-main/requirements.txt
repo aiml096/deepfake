@@ -1,6 +1,1 @@
 Flask 
-numpy 
-keras 
-tensorflow 
-gevent 
-werkzeug 

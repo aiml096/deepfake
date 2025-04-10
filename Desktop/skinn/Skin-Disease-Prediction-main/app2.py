@@ -1,37 +1,34 @@
-# skin_disease_app.py
-
 import streamlit as st
-import numpy as np
-from keras.models import load_model
-from keras.preprocessing import image
 from PIL import Image
+import io
+import os
 
-# Load the model
-model = load_model("skindisease.h5")
+# UI setup
+st.set_page_config(page_title="AgriDerm", layout="centered")
+st.title("🌾 AgriDerm: Skin Disease Detection for Farmers")
+st.write("Upload a skin image **or use your camera** to get the image file name (without extension).")
 
-# Disease classes
-classes = ['Acne', 'Melanoma', 'Peeling skin', 'Ring worm', 'Vitiligo']
+# Select input method
+upload_option = st.radio("Choose input method:", ("📤 Upload Image", "📷 Use Camera"))
 
-# Streamlit app
-st.title("Skin Disease Detection")
-st.write("Upload an image of the skin condition to get a prediction.")
+image_data = None
+image_filename = None
 
-# Upload file
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+# File upload option
+if upload_option == "📤 Upload Image":
+    uploaded_file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
+    if uploaded_file:
+        image_data = Image.open(uploaded_file).convert("RGB")
+        image_filename = os.path.splitext(uploaded_file.name)[0]  # Remove extension
 
-if uploaded_file is not None:
-    # Display the uploaded image
-    img = Image.open(uploaded_file)
-    st.image(img, caption="Uploaded Image", use_column_width=True)
-    
-    # Preprocess the image
-    img = img.resize((64, 64))
-    x = image.img_to_array(img)
-    x = np.expand_dims(x, axis=0)
-    
-    # Prediction
-    preds = model.predict(x)
-    label = np.argmax(preds, axis=1)[0]
-    prediction = classes[label]
+# Camera input option
+elif upload_option == "📷 Use Camera":
+    captured_image = st.camera_input("Take a photo using your webcam")
+    if captured_image:
+        image_data = Image.open(io.BytesIO(captured_image.getvalue())).convert("RGB")
+        image_filename = "captured_image"  # No extension
 
-    st.success(f"The predicted skin disease is: **{prediction}**")
+# Display image and filename
+if image_data:
+    st.image(image_data, caption="Uploaded Image", use_column_width=True)
+    st.success(f"📝 **Uploaded Image Filename**: `{image_filename}`")
